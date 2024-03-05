@@ -18,6 +18,7 @@ import { Module } from '@nestjs/core/injector/module';
 import { EventEmitter2 } from 'eventemitter2';
 import { EventsMetadataAccessor } from './events-metadata.accessor';
 import { OnEventOptions } from './interfaces';
+import { EventHandler } from './event-handler.service';
 
 @Injectable()
 export class EventSubscribersLoader
@@ -27,7 +28,8 @@ export class EventSubscribersLoader
 
   constructor(
     private readonly discoveryService: DiscoveryService,
-    private readonly eventEmitter: EventEmitter2,
+    private eventEmitter: EventEmitter2,
+    private readonly eventHandler: EventHandler,
     private readonly metadataAccessor: EventsMetadataAccessor,
     private readonly metadataScanner: MetadataScanner,
     private readonly moduleRef: ModuleRef,
@@ -90,11 +92,38 @@ export class EventSubscribersLoader
         options,
       });
     } else {
-      listenerMethod(
-        event,
-        (...args: unknown[]) => instance[methodKey].call(instance, ...args),
-        options,
+      this.eventHandler.addListener(event, (...args: unknown[]) =>
+        instance[methodKey].call(instance, ...args),
       );
+      // listenerMethod(
+      //   event,
+      //   (...args: unknown[]) => instance[methodKey].call(instance, ...args),
+      //   options,
+      // );
+
+    // for (const eventListenerMetadata of eventListenerMetadatas) {
+    //   const { event, options } = eventListenerMetadata;
+    //   const listenerMethod = this.getRegisterListenerMethodBasedOn(options);
+    //   if (isRequestScoped) {
+    //     this.registerRequestScopedListener({
+    //       event,
+    //       eventListenerInstance: instance,
+    //       listenerMethod,
+    //       listenerMethodKey: methodKey,
+    //       moduleRef,
+    //       options,
+    //     });
+    //   } else {
+    //     console.log({ a: 2, event });
+    //     this.eventHandler.addListener(event, (...args: unknown[]) =>
+    //       instance[methodKey].call(instance, ...args),
+    //     );
+    //     // listenerMethod(
+    //     //   event,
+    //     //   (...args: unknown[]) => instance[methodKey].call(instance, ...args),
+    //     //   options,
+    //     // );
+    //   }
     }
   }
 
